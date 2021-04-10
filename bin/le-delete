@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const fs = require('fs')
+const tplObj = require(`${__dirname}/../template`)
+
+let tplList = [];
+for(const key in tplObj) {
+    let item = tplObj[key];
+    item.name = `${item.name} 说明:${item.note}`
+    tplList.push(item)
+}
+
+inquirer.prompt([
+    // {
+    //     name: "name",
+    //     message: "请输入要删除的模板名称",
+    //     validate(val) {
+    //         if (val === '') {
+    //             return '模板名称为必填项!'
+    //         } else if (!tplObj[val]) {
+    //             return '您输入的模板名不存在!'
+    //         } else {
+    //             return true
+    //         }
+    //     }
+    // },
+    {
+        name: 'name',
+        type: 'checkbox',   //类型比较丰富
+        message: "请选择要删除的模板",
+        choices: tplList
+        // choices: [
+        //     { name: 'Overwrite', value: 'overwrite' },
+        //     { name: 'Cancel', value: false, },
+        // ]
+    }
+]).then(answers => {
+    // answers 就是用户输入的内容
+    let { name } = answers;
+    delete tplObj[name]
+    // 更新 template.json 文件
+    fs.writeFile(`${__dirname}/../template.json`, JSON.stringify(tplObj), 'utf-8', err => {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log('\n')
+            console.log(chalk.green('模版删除成功!\n'))
+            console.log(chalk.grey('最新的模版列表为: \n'))
+            console.log(tplObj)
+            console.log('\n')
+        }
+    })
+})

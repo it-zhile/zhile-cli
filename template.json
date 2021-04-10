@@ -1,0 +1,8 @@
+{
+    "serve-api": {
+        "name": "serve-api",
+        "note": "koa+msq的后端api服务",
+        "dUrl": "https://github.com/it-zhile/koa-cli.git",
+        "value": "serve-api"
+    }
+}

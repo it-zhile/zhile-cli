@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+
+const program = require('commander')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const ora = require('ora')
+const download = require('download-git-repo')
+const tplObj = require(`${__dirname}/../template`)
+
+program.usage('<template-name> [project-name]')
+program.parse(process.argv)
+// // 当没有输入参数的时候给个提示
+// if (program.args.length < 1) return program.help()
+
+// // 好比 vue init webpack project-name 的命令一样，第一个参数是 webpack，第二个参数是 project-name
+// let templateName = program.args[0]
+// let projectName = program.args[1]
+
+// if (!tplObj[templateName]) {
+//     console.log(chalk.red('\n Template does not exit! \n '))
+//     return
+// }
+// if (!projectName) {
+//     console.log(chalk.red('\n Project should not be empty! \n '))
+//     return
+// }
+
+
+let tplList = [];
+for(const key in tplObj) {
+    let item = tplObj[key];
+    item.name = `${item.name} 说明:${item.note}`
+    tplList.push(item)
+}
+
+inquirer.prompt([
+    {
+        name: 'name',
+        type: 'list',   //类型比较丰富
+        message: "请选择要创建的项目模板:",
+        choices: tplList
+    },
+    {
+        name: 'projectName',
+        type: 'input',
+        message: '请输入项目名称:',
+        validate(value) {
+            if(value === '') {
+                return '项目名称为必填项!'
+            }else {
+                return true
+            }
+        }
+    }
+]).then(answers => {
+    // answers 就是用户输入的内容
+    let { name, projectName } = answers;
+    // 模版下载地址
+    const downloadUrl = `direct:${tplObj[name]['dUrl']}#main`
+    // 终端输出内容
+    console.log(chalk.white('\n Start generating... \n'))
+    const spinner = ora("正在下载中...");
+    spinner.start();
+
+    download(downloadUrl,projectName,{ clone: true },err => {
+        if (err) {
+            spinner.fail();
+            console.log(chalk.red(`Generation failed. ${err}`))
+            return
+        }else {
+            spinner.succeed();
+            console.log(chalk.green('\n Generation completed!'))
+            console.log('\n To get started')
+            console.log(`\n    cd ${projectName} \n`)
+        }
+    })
+})
+
